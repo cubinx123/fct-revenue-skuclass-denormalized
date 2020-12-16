@@ -13,5 +13,6 @@ ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(name)s - '
                               'p%(process)s {%(pathname)s:%(lineno)d} - %(message)s',
                               datefmt='%Y-%b-%d %H:%M:%S')
+#print("something")
 ch.setFormatter(formatter)
 logger.addHandler(ch)
