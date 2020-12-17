@@ -21,20 +21,14 @@ WITH epod_cte as(
                               WHERE LOWER(status)='success'
                               AND left(reference_no,4) NOT IN ('PICK','RTLP','TEST','ZPHE','RETL','9999')
                               AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
-                              AND LOWER(job_master) IN ('delivery','express delivery','rtc_delivery')
+                              AND LOWER(job_master) IN ('delivery','express delivery','rtc_delivery','s_delivery')
 
                             )
 )
 SELECT e1.reference_no AS "tracking_number",
-       MAX(CASE WHEN left(e1.reference_no,4) = '0031'
-                THEN 
-                     CASE WHEN lower(e1.job_master) = 'delivery'
-                          THEN 'delivery'
-                          WHEN (e1.job_master) = 'rtc_delivery'
-                          THEN 'secondary'
-                          ELSE 'delivery'
-                     END
-                ELSE 'delivery'
+       MAX(CASE WHEN lower(e1.job_master) = 's_delivery'
+                THEN 'secondary_delivery'
+                ELSE 'delivery'  
            END) AS "direction",
        MAX(e1.updated_time) AS "updated_time",
        NULL AS customer_id, --join on customer table

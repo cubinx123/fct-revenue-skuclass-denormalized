@@ -33,3 +33,9 @@
 2020-Dec-17 10:37:29 - INFO - root - p13232 {run.py:19} - ePod Info Table ETL has Ended
 2020-Dec-17 12:22:16 - INFO - root - p9208 {run.py:17} - ePod Info Table ETL has Started
 2020-Dec-17 12:22:43 - INFO - root - p9208 {run.py:19} - ePod Info Table ETL has Ended
+2020-Dec-17 14:17:05 - INFO - root - p9316 {run.py:17} - ePod Info Table ETL has Started
+2020-Dec-17 14:19:02 - INFO - root - p9316 {run.py:19} - ePod Info Table ETL has Ended
+2020-Dec-17 14:24:18 - INFO - root - p9616 {run.py:17} - ePod Info Table ETL has Started
+2020-Dec-17 14:25:36 - INFO - root - p9616 {run.py:19} - ePod Info Table ETL has Ended
+2020-Dec-17 14:38:37 - INFO - root - p2716 {run.py:17} - ePod Info Table ETL has Started
+2020-Dec-17 14:39:27 - INFO - root - p2716 {run.py:19} - ePod Info Table ETL has Ended
