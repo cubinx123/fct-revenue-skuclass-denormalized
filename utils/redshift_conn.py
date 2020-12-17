@@ -16,6 +16,7 @@ class RedshiftConn:
 		# self.conn = p.connect(host=conn_string['host'], port=conn_string['port'], database=conn_string['dbname'], user=conn_string['username'], password=conn_string['password'])
 
 		try:
+			# self.conn = p.connect("host='{}' dbname='{}' user='{}' password='{}' port ='{}'".format(conn_string['host'],conn_string['dbname'],conn_string['username'],conn_string['password'],conn_string['port']))  
 			self.conn = p.connect("host='fareye-cluster.c1um01vbpg6h.ap-southeast-1.redshift.amazonaws.com' dbname='fareye' user='lester_paja' password='5oSqOXLp' port ='5439'")
 			# self.conn = p.connect(host=conn_string['host'], port=conn_string['port'], database=conn_string['dbname'],
 			# 				  user=conn_string['username'], password=conn_string['password'])
@@ -32,6 +33,14 @@ class RedshiftConn:
 	
 	def get_cursor(self):
 		return self.cur
+
+
+# def dbcreds():
+# 	print(conn_string['host'])
+# 	print(conn_string['port'])
+# 	print(conn_string['dbname'])
+# 	print(conn_string['username'])
+# 	print(conn_string['password'])
 
 	# def print_psycopg2_exception(self,err):
 	# 	# get details about the exception
