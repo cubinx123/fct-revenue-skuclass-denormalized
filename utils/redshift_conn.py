@@ -16,8 +16,9 @@ class RedshiftConn:
 		# self.conn = p.connect(host=conn_string['host'], port=conn_string['port'], database=conn_string['dbname'], user=conn_string['username'], password=conn_string['password'])
 
 		try:
-			# self.conn = p.connect("host='{}' dbname='{}' user='{}' password='{}' port ='{}'".format(conn_string['host'],conn_string['dbname'],conn_string['username'],conn_string['password'],conn_string['port']))  
-			self.conn = p.connect("host='fareye-cluster.c1um01vbpg6h.ap-southeast-1.redshift.amazonaws.com' dbname='fareye' user='lester_paja' password='5oSqOXLp' port ='5439'")
+			self.conn = p.connect("host={0} dbname={1} user={2} password={3} port ={4}".format(conn_string['host'],conn_string['dbname'],conn_string['username'],conn_string['password'],conn_string['port']))  
+			# self.conn = p.connect("host='fareye-cluster.c1um01vbpg6h.ap-southeast-1.redshift.amazonaws.com' dbname='fareye' user='lester_paja' password='5oSqOXLp' port ='5439'")
+			# self.conn = p.connect("host=fareye-cluster.c1um01vbpg6h.ap-southeast-1.redshift.amazonaws.com dbname=fareye user=lester_paja password=5oSqOXLp port =5439")
 			# self.conn = p.connect(host=conn_string['host'], port=conn_string['port'], database=conn_string['dbname'],
 			# 				  user=conn_string['username'], password=conn_string['password'])
 		except OperationalError as err:
