@@ -68,11 +68,11 @@ GROUP BY e1.reference_no
 
 BEGIN TRANSACTION;
 
-DELETE FROM finance.epod_staging
+DELETE FROM staging.ft_fwd_pod
 USING temp_epod_staging
-where finance.epod_staging.tracking_number = temp_epod_staging.tracking_number;
+where staging.ft_fwd_pod.tracking_number = temp_epod_staging.tracking_number;
 
-INSERT INTO finance.epod_staging
+INSERT INTO staging.ft_fwd_pod
 SELECT * FROM temp_epod_staging;
 
 END TRANSACTION;
