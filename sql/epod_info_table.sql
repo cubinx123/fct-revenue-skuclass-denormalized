@@ -20,6 +20,7 @@ WITH epod_cte as(
                               FROM fareye_zalora_backup
                               WHERE LOWER(status)='success'
                               AND left(reference_no,4) NOT IN ('PICK','RTLP','TEST','ZPHE','RETL','9999')
+                              --AND COALESCE(updated_time,transaction_date) between '2020-01-01 00:00:00' and '2020-01-15 23:59:59'
                               AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
                               AND LOWER(job_master) IN ('delivery','express delivery','rtc_delivery','s_delivery')
 
