@@ -14,6 +14,6 @@ def run():
 
 
 if __name__ == '__main__':
-	logger.info("ePod Info Table ETL has Started")
+	logger.info("Revheu Table ETL has Started")
 	run()
-	logger.info("ePod Info Table ETL has Ended")
+	logger.info("Revheu Table ETL has Ended")

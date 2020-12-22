@@ -11,8 +11,8 @@ fareye_db = {'username': os.environ.get("DB_USER"),
                   'port': os.environ.get("DB_PORT"),
                   'dbname': os.environ.get("DB_DBNAME")}
 
-views = [{'view_name': 'epod_info_table',# Change in .sql
-          'view_sql': 'epod_info_table.sql'
+views = [{'view_name': 'revheu_table',# Change in .sql
+          'view_sql': 'revheu-table.sql'
           }
          ]
 
