@@ -31,8 +31,8 @@ WITH fzb_cte AS(
                               FROM fareye_zalora_backup
                               WHERE LOWER(status)='success'
                               AND left(reference_no,4) NOT IN ('PICK','RTLP','TEST','ZPHE','RETL','9999')
-                              AND COALESCE(updated_time,transaction_date) between '2020-10-01 00:00:00' and '2020-10-31 23:59:59'
-                              -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 MONTH'
+                              -- AND COALESCE(updated_time,transaction_date) between '2020-10-01 00:00:00' and '2020-10-31 23:59:59'
+                              AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '2 DAY'
                               -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 MONTH'
                               -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '2 DAY'
                               -- AND COALESCE(updated_time,transaction_date) < CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
