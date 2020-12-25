@@ -31,9 +31,9 @@ WITH fzb_cte AS(
                               FROM fareye_zalora_backup
                               WHERE LOWER(status)='success'
                               AND left(reference_no,4) NOT IN ('PICK','RTLP','TEST','ZPHE','RETL','9999')
-                              -- AND COALESCE(updated_time,transaction_date) between '2020-12-01 00:00:00' and '2020-11-20 23:59:59'
+                              AND COALESCE(updated_time,transaction_date) between '2020-10-01 00:00:00' and '2020-10-31 23:59:59'
                               -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 MONTH'
-                              AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
+                              -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 MONTH'
                               -- AND COALESCE(updated_time,transaction_date) >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '2 DAY'
                               -- AND COALESCE(updated_time,transaction_date) < CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
                               AND LOWER(job_master) IN ('delivery','express delivery','rtc_delivery','s_delivery')
@@ -78,19 +78,23 @@ SELECT fzb_cte.reference_no,
        MAX(GREATEST(lms_cte.actual_amount_lms::varchar,fzb_cte.actual_amount)) as "actual_amount",
        MAX(fzb_cte.money_transaction_type) as "money_transaction_type",
        MAX(CASE WHEN lower(fzb_cte.status) = 'success' THEN fzb_cte.hub ELSE NULL END) as "hub",
-       Initcap(replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(
+       Initcap(regexp_replace(regexp_replace(regexp_replace(regexp_replace(
             regexp_replace(
             regexp_replace(
                 regexp_replace(
                     regexp_replace(
                         regexp_replace(
-                            regexp_replace(lower(MAX(COALESCE(lms_cte.delivery_city_lms,fzb_cte.delivery_city))),'([]|,/}{<>?"!@#$%^\'&*‘()_[-])|','')
-                        ,'[ ]?capital(| | of )','')
-                        ,'^sta(|\\.)','santa')
-                        ,'(ñ|ñ)','n')
-                        ,'^sta(|\\.)','santo')
-                        ,'^gen(\\. | )','general ')
-                        ,'[ ]?city(| | of )',''),'^pres(\\. | )','president '),'[[:space:]].\\.[[:space:]]',' '),'^sto(|\\.)','santo'),'ñ','n')) as "delivery_city",
+                            regexp_replace(lower(MAX(COALESCE(lms_cte.delivery_city_lms,fzb_cte.delivery_city)))
+                                          ,'([]|,/}{<>?"!@#$%^\'*‘()_[-])|','')
+                                          ,'[ ]?capital(| | of )','')
+                                          ,'^sta(|\\.)','santa')
+                                          ,'(ñ|ñ)','n')
+                                          ,'^sta(|\\.)','santo')
+                                          ,'^gen(\\. | )','general ')
+                                          ,'[ ]?city(| | of )','')
+                                          ,'^pres(\\. | )','president ')
+                                          ,'^sto(|\\.)','santo')
+                                          ,'ñ','n')) as "delivery_city",
        MAX(COALESCE(lms_cte.delivery_province_lms,fzb_cte.delivery_province)) as "delivery_province",
        BOOL_OR(fzb_cte.for_is_express) as "is_express",
        MAX(CASE WHEN fzb_cte.job_master in ('delivery','express delivery','rtc_delivery','s_delivery') THEN fzb_cte.job_master ELSE NULL END) as "job_master_first",
