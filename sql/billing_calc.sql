@@ -67,8 +67,8 @@ WITH revheu_cte AS (
         ON d.client_code = left(r.reference_no,4)
         AND lower(concat(d.city_daily,d.province_daily)) = lower(concat(r.delivery_city,r.delivery_province))
         WHERE LEFT(reference_no,4) in ('0038','0031')
-        -- AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
-        AND r."timestamp" between '2020-10-01 00:00:00' and '2021-11-30 23:59:59'
+        AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
+        -- AND r."timestamp" between '2020-10-01 00:00:00' and '2021-11-30 23:59:59'
         
 
                               
