@@ -14,6 +14,6 @@ def run():
 
 
 if __name__ == '__main__':
-	logger.info("Revheu Table ETL has Started")
+	logger.info("Billing Calculated Table ETL has Started")
 	run()
-	logger.info("Revheu Table ETL has Ended")
+	logger.info("Billing Calculated Table ETL has Ended")

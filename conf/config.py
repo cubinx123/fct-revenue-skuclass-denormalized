@@ -11,8 +11,8 @@ fareye_db = {'username': os.environ.get("DB_USER"),
                   'port': os.environ.get("DB_PORT"),
                   'dbname': os.environ.get("DB_DBNAME")}
 
-views = [{'view_name': 'revheu_table',# Change in .sql
-          'view_sql': 'revheu-table.sql'
+views = [{'view_name': 'billing_calc_table',# Change in .sql
+          'view_sql': 'billing_calc.sql'
           }
          ]
 
