@@ -13,3 +13,9 @@
 2021-Jan-04 18:42:20 - INFO - root - p11128 {run.py:17} - Billing Calculated Table ETL has Started
 2021-Jan-04 18:43:21 - INFO - root - p11128 {run.py:19} - Billing Calculated Table ETL has Ended
 2021-Jan-04 21:13:24 - INFO - root - p13532 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jan-04 21:51:15 - INFO - root - p11168 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jan-04 21:51:18 - INFO - root - p11168 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jan-05 09:27:07 - INFO - root - p11500 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jan-05 09:27:11 - INFO - root - p11500 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jan-05 09:31:48 - INFO - root - p16380 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jan-05 09:32:58 - INFO - root - p16380 {run.py:19} - Billing Calculated Table ETL has Ended
