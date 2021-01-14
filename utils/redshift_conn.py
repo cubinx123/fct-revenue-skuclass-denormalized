@@ -24,7 +24,7 @@ class RedshiftConn:
 		except OperationalError as err:
 			# self.print_psycopg2_exception(err)
 			# self.conn = None
-			return print('conn failed')
+			raise ValueError("Redshift Connection Failed. Please see the thrown message reported above.")
 		
 	def get_conn(self):
 		return self.conn
