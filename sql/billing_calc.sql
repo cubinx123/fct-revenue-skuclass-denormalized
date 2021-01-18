@@ -60,15 +60,13 @@ WITH revheu_cte AS (
        r."timestamp"
 
 
--- for assumed weight, criterias are 0 and null
-
         FROM finance.revheu_v2 r
         LEFT JOIN finance.dailybilling d
         ON d.client_code = left(r.reference_no,4)
         AND lower(concat(d.city_daily,d.province_daily)) = lower(concat(r.delivery_city,r.delivery_province))
         WHERE LEFT(reference_no,4) in ('0038','0031')
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '1 DAY'
-        -- AND r."timestamp" between '2020-09-29 00:00:00' and '2021-09-30 23:59:59'
+        -- AND r."timestamp" between '2021-01-01 00:00:00' and '2021-01-18 23:59:59'
         
 
                               
@@ -86,7 +84,7 @@ SELECT  reference_no,
         coverage,
         cod_fee,
         valuation_fee,
-        base_rate,
+        base_rate_r as base_rate,
         return_shipping,
         weight_surcharge,
         sra_surcharge,
@@ -127,7 +125,10 @@ FROM (
                         END
                END AS "valuation_fee",
 
-               rc.base_rate,
+               CASE WHEN rh.is_rtc AND rh.category in ('lazada_regular')
+                    THEN '0'
+                    ELSE rc.base_rate
+              END AS "base_rate_r",
 
                CASE WHEN rh.char_weight > CAST(rc.threshold AS DECIMAL(8,2))
                     THEN ((rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3)))/0.5) * CAST(rc.excess AS DECIMAL(8,3)) --ONLY SHOPEE HAS WEIGHT SURCHARGE AND IT IS BY 0.5kgs
@@ -148,7 +149,7 @@ FROM (
                     ELSE 0 
                 END AS "return_shipping",
 
-               CAST(rc.base_rate AS DECIMAL(8,3)) + "weight_surcharge" AS "total_shipping_fee",
+               CAST("base_rate_r" AS DECIMAL(8,3)) + "weight_surcharge" AS "total_shipping_fee",
 
                "total_shipping_fee" + "cod_fee" + "valuation_fee" + "sra_surcharge" + "return_shipping" AS "total_billing_amount_vatex",
  
