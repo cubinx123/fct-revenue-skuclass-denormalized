@@ -32,7 +32,7 @@ WITH revheu_cte AS (
                 CASE WHEN CAST(
                                 GREATEST(CASE WHEN r.actual_weight IN (null,'-','0') THEN '0' ELSE r.actual_weight END,
                                          CASE WHEN r.actual_weight IN (null,'-','') THEN '0' ELSE r.volumetric_weight END) AS FLOAT) = 0
-                     THEN 1.000 -- assumed weight for shopee
+                     THEN 0.500 -- assumed weight for shopee
                      ELSE CAST(
                                 GREATEST(CASE WHEN r.actual_weight IN (null,'-','0') THEN '0' ELSE r.actual_weight END,
                                          CASE WHEN r.actual_weight IN (null,'-','') THEN '0' ELSE r.volumetric_weight END) AS FLOAT)
