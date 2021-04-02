@@ -126,7 +126,7 @@ WITH revheu_cte AS (
         -- WHERE LEFT(reference_no,4) in ('0210','0217','0232','0214','0202','0230','0197','0216','0030')
         -- WHERE LEFT(reference_no,4) in ('0219')
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
-        -- AND r."timestamp" between '2021-03-01 00:00:00' and '2021-03-21 23:59:59'
+        -- AND r."timestamp" between '2021-03-16 00:00:00' and '2021-03-31 23:59:59'
 
 
 
@@ -206,16 +206,8 @@ FROM (
                -- CASE WHEN rh.char_weight > CAST(rc.threshold AS DECIMAL(8,2)) and rh.package_type in ('general_cargo','bulky')
                     THEN
                          CASE WHEN rc.weight_roundup
-                              THEN
-                                    CASE WHEN rh.category in ('shopee_regular1','shopee_regular2')
-                                         THEN CEIL(((rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3)))/0.5)) * CAST(rc.excess AS DECIMAL(8,3)) --SHOPEE HAS WEIGHT SURCHARGE AND IT IS BY 0.5kgs
-                                         ELSE CEIL(rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3))
-                                    END
-                              ELSE
-                                    CASE WHEN rh.category in ('shopee_regular1','shopee_regular2')
-                                        THEN ((rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3)))/0.5) * CAST(rc.excess AS DECIMAL(8,3)) --SHOPEE HAS WEIGHT SURCHARGE AND IT IS BY 0.5kgs
-                                        ELSE (rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3)) --this one is for every kilo
-                                    END
+                              THEN CEIL(rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3))
+                              ELSE (rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3))
                          END
                     ELSE 0
                END AS "weight_surcharge",
