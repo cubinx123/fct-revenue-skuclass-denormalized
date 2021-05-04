@@ -5,8 +5,8 @@ WITH revheu_cte AS (
        --JOINING REVHEU AND COVERAGE CLASS
 
        SELECT r.reference_no,
-       replace(r.delivery_city,'ñ','n') as "delivery_city_r",
-       r.delivery_province,
+       CASE WHEN d.region IS NULL THEN 'Paranaque' ELSE replace(r.delivery_city,'ñ','n') END AS "delivery_city_r",
+       CASE WHEN d.region IS NULL THEN 'Metro Manila' ELSE r.delivery_province END AS "delivery_province",
        r.barangay,
        CASE WHEN LEFT(r.reference_no,4) = '0031'
             THEN 'lazada_regular'
@@ -64,11 +64,11 @@ WITH revheu_cte AS (
        CAST(r.package_value AS DECIMAL(20,2)) AS package_value,
        CAST(r.actual_amount AS DECIMAL(20,2)) AS actual_amount,
 
-       LOWER(d.region) as "region",
-       d.coverage,
+       CASE WHEN LOWER(d.region) IS NULL THEN 'ncr' ELSE LOWER(d.region) END AS "region",
+       CASE WHEN d.coverage IS NULL THEN 'SA-C' ELSE d.coverage END AS "coverage",
 
 
-       CASE WHEN LEFT(r.reference_no,4) not in ('0031','0038','0018','0017')
+       CASE WHEN LEFT(r.reference_no,4) not in ('0031','0038','0018','0280','0017')
             THEN
                  CASE WHEN char_weight > 3
                       THEN 'general_cargo'
@@ -92,8 +92,16 @@ WITH revheu_cte AS (
             ELSE
                  CASE WHEN LEFT(r.reference_no,4) = '0038'
                       THEN 'none'
-                      WHEN LEFT(r.reference_no,4) = '0018'
-                      THEN package_type
+                      WHEN LEFT(r.reference_no,4) = '0018' or LEFT(r.reference_no,4) = '0280'
+                      THEN 
+                            CASE WHEN regexp_count(lower(r.reference_no),'mp') > 0
+                                 THEN 'medium'
+                                 ELSE
+                                      CASE WHEN package_type IN ('-')
+                                           THEN 'large'
+                                           ELSE lower(package_type)
+                                      END
+                            END
                       WHEN char_weight > 3
                       THEN 'general_cargo'
                       ELSE 'pouch'
@@ -111,7 +119,11 @@ WITH revheu_cte AS (
             ELSE 'none'
        END AS package_category,
 
-       r.is_rtc,
+       CASE WHEN REGEXP_COUNT(lower(r.reference_no),'-pr') > 0 and (left(r.reference_no,4) = '0018' or left(r.reference_no,4) = '0280')
+            THEN TRUE
+            ELSE r.is_rtc
+       END as is_rtc,
+       r.is_express,
        r."timestamp"
 
        -- row_number() over (partition by r.reference_no) as "rn"
@@ -122,11 +134,11 @@ WITH revheu_cte AS (
         ON d.client_code = case when left(r.reference_no,4) in ('0031','0038','0017') then left(r.reference_no,4) else 'all' end
         AND replace(lower(concat(concat(d.city_daily,d.province_daily),d.barangay)),' ','') = replace(lower(concat(concat(replace(r.delivery_city,'ñ','n'),r.delivery_province),r.barangay)),' ','')
         -- WHERE LEFT(reference_no,4) in ('0038','0031','0117')
-        WHERE LEFT(reference_no,4) in ('0031','0038','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
+        WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
         -- WHERE LEFT(reference_no,4) in ('0210','0217','0232','0214','0202','0230','0197','0216','0030')
-        -- WHERE LEFT(reference_no,4) in ('0219')
+        -- WHERE LEFT(reference_no,4) in ('0018')
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
-        -- AND r."timestamp" between '2021-03-16 00:00:00' and '2021-03-31 23:59:59'
+        -- AND r."timestamp" between '2021-04-28 00:00:00' and '2021-04-30 23:59:59'
 
 
 
@@ -160,7 +172,10 @@ SELECT  reference_no,
         actual_weight_r as actual_weight,
         volumetric_weight_r as volumetric_weight,
         LOWER(job_master_first) as job_master,
-        barangay
+        barangay,
+        pickup_surcharge,
+        express_surcharge,
+        express_weight_surcharge
 
 
 FROM (
@@ -199,6 +214,8 @@ FROM (
 
                CASE WHEN rh.is_rtc AND rh.category in ('lazada_regular')
                     THEN '0'
+                    WHEN rh.is_rtc and regexp_count(lower(rh.reference_no),'-pr') > 0 and (rh.category = '0018' or rh.category = '0280')
+                    THEN '0'
                     ELSE rc.base_rate
               END AS "base_rate_r",
 
@@ -213,17 +230,23 @@ FROM (
                END AS "weight_surcharge",
 
                CASE WHEN rh.coverage not in ('SA-C')
-                    THEN (CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.sar AS DECIMAL(8,2))
+                    THEN 
+                          CASE WHEN left(rh.reference_no,4) in ('0018','0280') -- when zalora, use fixed rate SAR in rate card
+                               THEN CAST(rc.sar AS DECIMAL(8,2)) 
+                               ELSE (CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.sar AS DECIMAL(8,2))
+                          END
                     ELSE 0
                END AS "sra_surcharge",
 
                CASE WHEN rh.is_rtc
                     THEN
                          CASE WHEN rh.category = 'lazada_regular'
-                              THEN ((CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3))) + "valuation_fee" -- no SRA surcharge since this a not a new client
+                              THEN ((CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3))) -- no SRA surcharge since this a not a new client
                               WHEN rh.category in ('shopee_regular1','shopee_regular2')
                               THEN 0 --WE DONT CHARGE RETURN SHIPPING FOR SHOPEE
                               -- WHEN rh.category in ('0058','0163','0226','0116','0141','0134','0106','0092','0210','0217','0232','0214','0202','0230','0197','0216') --return shipping formula for these clients (base+weight) x 50% 
+                              WHEN left(rh.reference_no,4) in ('0018','0280') -- Zalora RTC is pure 50% of base rate
+                              THEN CAST(rc.base_rate AS float) * CAST(rc.return_rate AS DECIMAL(8,3))
                               WHEN rc.is_base_rate
                               THEN (CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3))
                               ELSE (CAST(rc.base_rate AS float) + "weight_surcharge" + "sra_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3)) --other clients sra included
@@ -236,10 +259,26 @@ FROM (
                     ELSE 0
                     END AS "redelivery_fee",
 
+                CASE WHEN regexp_count(lower(rh.reference_no),'-pr') > 0 and (rh.category = '0018' or rh.category = '0280')
+                     THEN 10
+                     ELSE 0
+                END as "pickup_surcharge",    
+
+                CASE WHEN rh.is_express
+                     THEN CAST(rc.express_sur AS float)
+                     ELSE 0
+                END AS "express_surcharge",
+
+                CASE WHEN rh.is_express AND rh.char_weight > CAST(rc.threshold AS DECIMAL(8,2))
+                     THEN CAST(rc.express_weight_sur AS float)
+                     ELSE 0
+                END AS "express_weight_surcharge",
+
+
 
                CAST("base_rate_r" AS float) + "weight_surcharge" + "redelivery_fee" AS "total_shipping_fee",
 
-               "total_shipping_fee" + "cod_fee" + "valuation_fee" + "sra_surcharge" + "return_shipping" AS "total_billing_amount_vatex",
+               "total_shipping_fee" + "cod_fee" + "valuation_fee" + "sra_surcharge" + "return_shipping" + "pickup_surcharge" + "express_surcharge" + "express_weight_surcharge" AS "total_billing_amount_vatex",
 
                "total_billing_amount_vatex" * 0.12 AS "vat",
 
