@@ -70,7 +70,7 @@ WITH revheu_cte AS (
 
        CASE WHEN LEFT(r.reference_no,4) not in ('0031','0038','0018','0280','0017')
             THEN
-                 CASE WHEN char_weight > 3
+                 CASE WHEN actual_weight_r > 3
                       THEN 'general_cargo'
                       WHEN r.package_size in ('-','envelope','small','0','envelope size','envelopes') -- DASH (-) and base rate is only tentative
                       THEN 'small'
@@ -135,10 +135,10 @@ WITH revheu_cte AS (
         AND replace(lower(concat(concat(d.city_daily,d.province_daily),d.barangay)),' ','') = replace(lower(concat(concat(replace(r.delivery_city,'ñ','n'),r.delivery_province),r.barangay)),' ','')
         -- WHERE LEFT(reference_no,4) in ('0038','0031','0117')
         WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
-        -- WHERE LEFT(reference_no,4) in ('0210','0217','0232','0214','0202','0230','0197','0216','0030')
+        -- WHERE LEFT(reference_no,4) in ('0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
         -- WHERE LEFT(reference_no,4) in ('0018')
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
-        -- AND r."timestamp" between '2021-04-28 00:00:00' and '2021-04-30 23:59:59'
+        -- AND r."timestamp" between '2021-05-01 00:00:00' and '2021-05-15 23:59:59'
 
 
 
