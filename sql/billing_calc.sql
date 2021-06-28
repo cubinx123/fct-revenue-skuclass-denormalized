@@ -108,7 +108,7 @@ WITH revheu_cte AS (
                  END
        END AS package_type,
 
-       CASE WHEN LEFT(r.reference_no,4) in ('0219') --update this one if there are parcel or documents in rate card
+       CASE WHEN LEFT(r.reference_no,4) in ('0219','0278','0237','0248','0234') --update this one if there are parcel or documents in rate card
             THEN 
                  CASE WHEN regexp_count(lower(package_type),'freight') > 0
                       THEN 'parcel'
@@ -134,11 +134,11 @@ WITH revheu_cte AS (
         ON d.client_code = case when left(r.reference_no,4) in ('0031','0038','0017') then left(r.reference_no,4) else 'all' end
         AND replace(lower(concat(concat(d.city_daily,d.province_daily),d.barangay)),' ','') = replace(lower(concat(concat(replace(r.delivery_city,'ñ','n'),r.delivery_province),r.barangay)),' ','')
         -- WHERE LEFT(reference_no,4) in ('0038','0031','0117')
-        WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
-        -- WHERE LEFT(reference_no,4) in ('0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122')
-        -- WHERE LEFT(reference_no,4) in ('0018')
+        WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
+        -- WHERE LEFT(reference_no,4) in ('0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
+        -- WHERE LEFT(reference_no,4) in ('0293')
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
-        -- AND r."timestamp" between '2021-05-01 00:00:00' and '2021-05-15 23:59:59'
+        -- AND r."timestamp" between '2021-06-16 00:00:00' and '2021-06-25 23:59:59'
 
 
 
@@ -231,7 +231,7 @@ FROM (
 
                CASE WHEN rh.coverage not in ('SA-C')
                     THEN 
-                          CASE WHEN left(rh.reference_no,4) in ('0018','0280') -- when zalora, use fixed rate SAR in rate card
+                          CASE WHEN left(rh.reference_no,4) in ('0018','0280','0283') -- when zalora and other clients, use fixed rate SAR in rate card
                                THEN CAST(rc.sar AS DECIMAL(8,2)) 
                                ELSE (CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.sar AS DECIMAL(8,2))
                           END
