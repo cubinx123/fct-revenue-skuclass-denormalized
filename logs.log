@@ -185,3 +185,11 @@
 2021-Jun-16 10:58:35 - INFO - root - p308 {run.py:19} - Billing Calculated Table ETL has Ended
 2021-Jun-27 20:14:45 - INFO - root - p13216 {run.py:17} - Billing Calculated Table ETL has Started
 2021-Jun-27 20:15:23 - INFO - root - p13216 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jul-06 18:26:33 - INFO - root - p10216 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jul-06 18:28:57 - INFO - root - p10216 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jul-09 15:10:47 - INFO - root - p9780 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jul-09 17:10:58 - INFO - root - p9780 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jul-12 09:55:23 - INFO - root - p12292 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jul-12 09:56:15 - INFO - root - p12292 {run.py:19} - Billing Calculated Table ETL has Ended
+2021-Jul-12 12:43:40 - INFO - root - p17192 {run.py:17} - Billing Calculated Table ETL has Started
+2021-Jul-12 12:43:56 - INFO - root - p17192 {run.py:19} - Billing Calculated Table ETL has Ended

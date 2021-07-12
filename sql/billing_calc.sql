@@ -5,8 +5,8 @@ WITH revheu_cte AS (
        --JOINING REVHEU AND COVERAGE CLASS
 
        SELECT r.reference_no,
-       CASE WHEN d.region IS NULL THEN 'Paranaque' ELSE replace(r.delivery_city,'ñ','n') END AS "delivery_city_r",
-       CASE WHEN d.region IS NULL THEN 'Metro Manila' ELSE r.delivery_province END AS "delivery_province",
+       f_billing_clean_city(d.region,r.delivery_city) AS "delivery_city_r",
+       f_billing_clean_province(d.region,r.delivery_province) AS "delivery_province",
        r.barangay,
        CASE WHEN LEFT(r.reference_no,4) = '0031'
             THEN 'lazada_regular'
