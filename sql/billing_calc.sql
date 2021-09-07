@@ -64,7 +64,13 @@ WITH revheu_cte AS (
        CAST(r.package_value AS DECIMAL(20,2)) AS package_value,
        CAST(r.actual_amount AS DECIMAL(20,2)) AS actual_amount,
 
-       CASE WHEN LOWER(d.region) IS NULL THEN 'ncr' ELSE LOWER(d.region) END AS "region",
+       CASE WHEN LOWER(d.region) IS NULL 
+            THEN 'ncr' 
+            WHEN LEFT(r.reference_no,4) = '0038' AND LOWER(f_billing_clean_city(d.region,r.delivery_city)) = 'davao'
+            THEN 'davao' -- this is for shopee EX Vizmin
+            ELSE LOWER(d.region) 
+      END AS "region",
+
        CASE WHEN d.coverage IS NULL THEN 'SA-C' ELSE d.coverage END AS "coverage",
 
 
