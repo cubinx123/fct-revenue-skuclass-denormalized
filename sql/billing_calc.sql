@@ -11,7 +11,7 @@ WITH revheu_cte AS (
        CASE WHEN LEFT(r.reference_no,4) = '0031'
             THEN 'lazada_regular'
             WHEN LEFT(r.reference_no,4) = '0038'
-            THEN 'shopee_regular1'
+            THEN 'shopee_regular2'
             WHEN LEFT(r.reference_no,4) = '0017'
             THEN 'bpi_cc'
             ELSE LEFT(r.reference_no,4) -- this is for category
