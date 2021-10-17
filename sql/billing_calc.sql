@@ -114,7 +114,7 @@ WITH revheu_cte AS (
                  END
        END AS package_type,
 
-       CASE WHEN LEFT(r.reference_no,4) in ('0219','0278','0237','0248','0234','0284','0266') --update this one if there are parcel or documents in rate card
+       CASE WHEN LEFT(r.reference_no,4) in ('0219','0278','0237','0248','0234','0284','0266','0230') --update this one if there are parcel or documents in rate card
             THEN 
                  CASE WHEN regexp_count(lower(package_type),'freight') > 0
                       THEN 'parcel'
