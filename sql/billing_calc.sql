@@ -24,7 +24,7 @@ WITH revheu_cte AS (
                                     CAST(
                                         GREATEST(CAST(CASE WHEN r.actual_weight in (null,'-','0','') THEN '0' ELSE r.actual_weight END AS FLOAT),
                                                  CAST(CASE WHEN r.volumetric_weight IN (null,'-','0','') THEN '0' ELSE r.volumetric_weight END AS FLOAT)) AS FLOAT)/0.5)/2 = 0
-                           THEN 1.000 --assumed weight for lazada
+                           THEN 0.500 --assumed weight for lazada
                            ELSE CEILING(
                                     CAST(
                                         GREATEST(CAST(CASE WHEN r.actual_weight in (null,'-','0','') THEN '0' ELSE r.actual_weight END AS FLOAT),
@@ -64,7 +64,9 @@ WITH revheu_cte AS (
        CAST(r.package_value AS DECIMAL(20,2)) AS package_value,
        CAST(r.actual_amount AS DECIMAL(20,2)) AS actual_amount,
 
-       CASE WHEN LOWER(d.region) IS NULL 
+       CASE WHEN LOWER(d.region) IS NULL and LEFT(r.reference_no,4) = '0031'
+            THEN 'gma'
+            WHEN LOWER(d.region) IS NULL
             THEN 'ncr' 
             WHEN LEFT(r.reference_no,4) = '0038' AND LOWER(f_billing_clean_city(d.region,r.delivery_city)) = 'davao'
             THEN 'davao' -- this is for shopee EX Vizmin
@@ -76,11 +78,17 @@ WITH revheu_cte AS (
 
        CASE WHEN LEFT(r.reference_no,4) not in ('0031','0038','0018','0280','0017')
             THEN
-                 CASE WHEN actual_weight_r > 3
+                 CASE WHEN r.package_size = 'entregobox-s' or (r.package_size = 'box' and lower(r.package_type) = 'small')
+                      THEN 'box_small'
+                      WHEN r.package_size = 'entregobox-m' or (r.package_size = 'box' and lower(r.package_type) = 'medium')
+                      THEN 'box_medium'
+                      WHEN r.package_size = 'entregobox-l' or (r.package_size = 'box' and lower(r.package_type) = 'large')
+                      THEN 'box_large'
+                      WHEN actual_weight_r > 3
                       THEN 'general_cargo'
                       WHEN r.package_size in ('-','envelope','small','0','envelope size','envelopes') -- DASH (-) and base rate is only tentative
                       THEN 'small'
-                      WHEN r.package_size in ('general_cargo','regular')
+                      WHEN r.package_size in ('general_cargo','regular','gencar')
                       THEN 'general_cargo'
                       WHEN r.package_size in ('box','base rate')
                       THEN 'box'
@@ -114,7 +122,7 @@ WITH revheu_cte AS (
                  END
        END AS package_type,
 
-       CASE WHEN LEFT(r.reference_no,4) in ('0219','0278','0237','0248','0234','0284','0266','0230') --update this one if there are parcel or documents in rate card
+       CASE WHEN LEFT(r.reference_no,4) in ('0219','0278','0237','0234','0284','0266') --update this one if there are parcel or documents in rate card
             THEN 
                  CASE WHEN regexp_count(lower(package_type),'freight') > 0
                       THEN 'parcel'
@@ -140,7 +148,7 @@ WITH revheu_cte AS (
         LEFT JOIN finance.dailybilling_v2 d
         ON d.client_code = case when left(r.reference_no,4) in ('0031','0038','0017') 
                                 then left(r.reference_no,4) 
-                                when left(r.reference_no,4) in ('0010','0011','0012','0013','0014','0015','0016','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297') --globe codes
+                                when left(r.reference_no,4) in ('0010','0011','0012','0013','0014','0015','0016','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297','0126','0172','0195','0260','0270','0275','0287','0296','0352','0364','0405','0426','0442','0454','0457','0458','0459','0466','0467','0468','0473','0474','0475','0481','0487','0488','0509','0516','0521','0523','0524','0525','0527','0528') --globe codes
                                 then 'globe'
                                 when left(r.reference_no,4) in ('0018','0280')
                                 then 'zalora'
@@ -151,11 +159,12 @@ WITH revheu_cte AS (
         -- WHERE LEFT(reference_no,4) in ('0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297')
         -- WHERE LEFT(reference_no,4) in ('0038')
         -- WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
-        WHERE (LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
-              OR LEFT(reference_no,4) in ('0128','0196','0250','0304','0310','0315','0319','0323','0335','0337','0306','0332','0338','0309','0318','0343','0125','0347','0348','0324','0284','0349','0254','0345','0331','0340','0325','0311','0299','0308','0193','0298','0225','0267','0263','0187','0312','0223','0317','0266','0033','0339','0342','0258','0136','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297'))
+        -- WHERE (LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
+        --       OR LEFT(reference_no,4) in ('0128','0196','0250','0304','0310','0315','0319','0323','0335','0337','0306','0332','0338','0309','0318','0343','0125','0347','0348','0324','0284','0349','0254','0345','0331','0340','0325','0311','0299','0308','0193','0298','0225','0267','0263','0187','0312','0223','0317','0266','0033','0339','0342','0258','0136','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297'))
         -- WHERE LEFT(reference_no,4) in ('0018','0280')
-        AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '2 DAY'
-        -- AND r."timestamp" between '2021-02-01 00:00:00' and '2021-02-28 23:59:59'
+        WHERE LEFT(reference_no,4) in (select distinct case when category in ('lazada_regular','lazada_rtm') then '0031' when category in ('shopee_regular1','shopee_regular2') then '0038' else category end from finance.rate_card_v2)
+        AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
+        -- AND r."timestamp" between '2022-01-01 00:00:00' and '2022-01-31 23:59:59'
         
         -- AND r."timestamp" between '2021-08-16 00:00:00' and '2021-08-30 23:59:59'
 
@@ -228,8 +237,9 @@ FROM (
                     ELSE
                         CASE WHEN rh.category in ('shopee_regular1','shopee_regular2')
                              THEN (rh.package_value * CAST(rc.valuation AS float)) / 1.12 --REMOVING VAT FROM VALUATION FEE CALCULATION FOR SHOPEE
-                             WHEN LEFT(rh.reference_no,4) = '0248'
-                             THEN (rh.package_value - 500) * CAST(rc.valuation AS float) --PINGCON first 500 pesos free of valuation fee
+                             --WHEN LEFT(rh.reference_no,4) in ('0248','0505','0230','0518') --clients first 500 pesos free
+                             WHEN LEFT(rh.reference_no,4) in (select distinct category from finance.rate_card_v2 where value_max = '500')
+                             THEN (rh.package_value - 500) * CAST(rc.valuation AS float) -- first 500 pesos free of valuation fee
                              ELSE rh.package_value * CAST(rc.valuation AS float)
                         END
                END AS "valuation_fee",
@@ -255,7 +265,7 @@ FROM (
                     THEN 
                           CASE WHEN left(rh.reference_no,4) in ('0018','0280','0283') -- when zalora and other clients, use fixed rate SAR in rate card
                                THEN CAST(rc.sar AS DECIMAL(8,2))
-                               WHEN left(rh.reference_no,4) in ('0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297') --globe project codes
+                               WHEN left(rh.reference_no,4) in ('0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297','0126','0172','0195','0260','0270','0275','0287','0296','0352','0364','0405','0426','0442','0454','0457','0458','0459','0466','0467','0468','0473','0474','0475','0481','0487','0488','0509','0516','0521','0523','0524','0525','0527','0528') --globe project codes
                                THEN CAST(rh.distance as INT) * 5
                                ELSE (CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.sar AS DECIMAL(8,2))
                           END
