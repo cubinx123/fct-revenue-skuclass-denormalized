@@ -161,12 +161,12 @@ WITH revheu_cte AS (
         -- WHERE LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
         -- WHERE (LEFT(reference_no,4) in ('0031','0038','0018','0280','0117','0029','0192','0058','0163','0226','0242','0116','0180','0206','0141','0134','0140','0106','0199','0235','0228','0233','0185','0198','0173','0186','0092','0210','0217','0232','0214','0202','0230','0197','0216','0030','0219','0105','0122','0077','0160','0246','0150','0269','0171','0132','0137','0244','0209','0149','0167','0170','0265','0168','0144','0188','0268','0292','0278','0252','0294','0237','0245','0281','0241','0248','0234','0283','0215','0293')
         --       OR LEFT(reference_no,4) in ('0128','0196','0250','0304','0310','0315','0319','0323','0335','0337','0306','0332','0338','0309','0318','0343','0125','0347','0348','0324','0284','0349','0254','0345','0331','0340','0325','0311','0299','0308','0193','0298','0225','0267','0263','0187','0312','0223','0317','0266','0033','0339','0342','0258','0136','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297'))
-        -- WHERE LEFT(reference_no,4) in ('0018','0280')
+        -- WHERE LEFT(reference_no,4) in ('0150')
         WHERE LEFT(reference_no,4) in (select distinct case when category in ('lazada_regular','lazada_rtm') then '0031' when category in ('shopee_regular1','shopee_regular2') then '0038' else category end from finance.rate_card_v2)
         AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
         -- AND r."timestamp" between '2022-01-01 00:00:00' and '2022-01-31 23:59:59'
         
-        -- AND r."timestamp" between '2021-08-16 00:00:00' and '2021-08-30 23:59:59'
+        -- AND r."timestamp" >= '2022-01-01 00:00:00'
 
 
 
@@ -204,7 +204,9 @@ SELECT  reference_no,
         barangay,
         pickup_surcharge,
         express_surcharge,
-        express_weight_surcharge
+        express_weight_surcharge,
+        client_subgroup_code,
+        client_subgroup
 
 
 FROM (
@@ -339,13 +341,15 @@ FROM (
         AND rh.package_type = rc.package_type
         AND rh.package_category = rc.package_category
         AND rh.char_weight BETWEEN rc.weight_min AND rc.weight_max
-        AND rh.package_value BETWEEN rc.value_min AND rc.value_max)
+        AND rh.package_value BETWEEN rc.value_min AND rc.value_max) final
 
+
+LEFT JOIN dw.dim_client_info subgroup
+on final.reference_no = subgroup.tracking_numbers
 WHERE rn = 1
 
 );
 
--- BEGIN TRANSACTION;
 
 DELETE FROM mart_finance.new_billing_all_clients
 USING temp_billing_with_barangay
@@ -354,6 +358,14 @@ where mart_finance.new_billing_all_clients.reference_no = temp_billing_with_bara
 INSERT INTO mart_finance.new_billing_all_clients
 SELECT * FROM temp_billing_with_barangay;
 
--- END TRANSACTION;
-
 DROP TABLE temp_billing_with_barangay;
+
+-- DELETE FROM finance.new_billing_all_clients_test
+-- USING temp_billing_with_barangay
+-- where finance.new_billing_all_clients_test.reference_no = temp_billing_with_barangay.reference_no;
+
+-- INSERT INTO finance.new_billing_all_clients_test
+-- SELECT * FROM temp_billing_with_barangay;
+
+
+-- DROP TABLE temp_billing_with_barangay;
