@@ -206,7 +206,8 @@ SELECT  reference_no,
         express_surcharge,
         express_weight_surcharge,
         client_subgroup_code,
-        client_subgroup
+        client_subgroup,
+        mp_pickup_surcharge
 
 
 FROM (
@@ -255,8 +256,23 @@ FROM (
 
                CASE WHEN rh.char_weight > CAST(rc.threshold AS DECIMAL(8,2)) -- regardless of package size, as long as it exceeds the threshold weight, excess weight will be charged
                -- CASE WHEN rh.char_weight > CAST(rc.threshold AS DECIMAL(8,2)) and rh.package_type in ('general_cargo','bulky')
-                    THEN
-                         CASE WHEN rc.weight_roundup
+                    THEN 
+                         CASE WHEN left(rh.reference_no,4) = '0031'
+                              THEN 
+                                    CASE WHEN rh.is_rtc
+                                         THEN 
+                                                CASE WHEN rc.weight_roundup
+                                                     THEN CEIL(rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3)) * CAST(rc.return_rate AS DECIMAL(8,3)) * 2 -- (x2 because laz excess is per 0.5kg) if the transaction is rtc, only 50% will reflect as weight surcharge LAZADA ONLY
+                                                     ELSE (rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3)) * CAST(rc.return_rate AS DECIMAL(8,3))  * 2 -- (x2 because laz excess is per 0.5kg) if the transaction is rtc, only 50% will reflect as weight surcharge LAZADA ONLY
+                                                END
+                                         ELSE 
+                                                CASE WHEN rc.weight_roundup
+                                                     THEN CEIL(rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3)) * 2 --(x2 because laz excess is per 0.5kg)
+                                                     ELSE (rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3)) * 2 --(x2 because laz excess is per 0.5kg)
+                                                END
+                                    END            
+
+                              WHEN rc.weight_roundup
                               THEN CEIL(rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3))
                               ELSE (rh.char_weight - CAST(rc.threshold AS DECIMAL(8,3))) * CAST(rc.excess AS DECIMAL(8,3))
                          END
@@ -277,7 +293,8 @@ FROM (
                CASE WHEN rh.is_rtc
                     THEN
                          CASE WHEN rh.category = 'lazada_regular'
-                              THEN ((CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3))) -- no SRA surcharge since this a not a new client
+                              -- THEN ((CAST(rc.base_rate AS float) + "weight_surcharge") * CAST(rc.return_rate AS DECIMAL(8,3))) -- no SRA surcharge since this a not a new client
+                              THEN CAST(rc.base_rate AS float) * CAST(rc.return_rate AS DECIMAL(8,3)) -- 50% of weight surcharge will be separated from return shipping as per lhet's request
                               WHEN rh.category in ('shopee_regular1','shopee_regular2')
                               THEN 0 --WE DONT CHARGE RETURN SHIPPING FOR SHOPEE
                               -- WHEN rh.category in ('0058','0163','0226','0116','0141','0134','0106','0092','0210','0217','0232','0214','0202','0230','0197','0216') --return shipping formula for these clients (base+weight) x 50% 
@@ -310,11 +327,16 @@ FROM (
                      ELSE 0
                 END AS "express_weight_surcharge",
 
+                CASE WHEN regexp_count(lower(rh.reference_no),'mp') > 0 and (rh.category = '0018' or rh.category = '0280')
+                     THEN 10
+                     ELSE 0
+                END as "mp_pickup_surcharge", 
+
 
 
                CAST("base_rate_r" AS float) + "weight_surcharge" + "redelivery_fee" AS "total_shipping_fee",
 
-               "total_shipping_fee" + "cod_fee" + "valuation_fee" + "sra_surcharge" + "return_shipping" + "pickup_surcharge" + "express_surcharge" + "express_weight_surcharge" AS "total_billing_amount_vatex",
+               "total_shipping_fee" + "cod_fee" + "valuation_fee" + "sra_surcharge" + "return_shipping" + "pickup_surcharge" + "mp_pickup_surcharge" + "express_surcharge" + "express_weight_surcharge" AS "total_billing_amount_vatex",
 
                "total_billing_amount_vatex" * 0.12 AS "vat",
 
