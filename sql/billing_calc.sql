@@ -239,7 +239,7 @@ FROM (
                     THEN 0 --NO VALUATION FEE FOR SHOPPING FOR PACKAGE_VALUE LESS THAN 2501 PHP
                     ELSE
                         CASE WHEN rh.category in ('shopee_regular1','shopee_regular2')
-                             THEN (rh.package_value * CAST(rc.valuation AS float)) / 1.12 --REMOVING VAT FROM VALUATION FEE CALCULATION FOR SHOPEE
+                             THEN ((rh.package_value - 2500) * CAST(rc.valuation AS float)) / 1.12 --REMOVING VAT FROM VALUATION FEE CALCULATION FOR SHOPEE
                              --WHEN LEFT(rh.reference_no,4) in ('0248','0505','0230','0518') --clients first 500 pesos free
                              WHEN LEFT(rh.reference_no,4) in (select distinct category from finance.rate_card_v2 where value_max = '500')
                              THEN (rh.package_value - 500) * CAST(rc.valuation AS float) -- first 500 pesos free of valuation fee
