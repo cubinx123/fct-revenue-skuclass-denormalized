@@ -139,14 +139,7 @@ WITH revheu_cte AS (
        END as is_rtc,
        r.is_express,
        r."timestamp",
-       d.distance,
-       subgroup.client_subgroup_code,
-
-       CASE WHEN lower(delivery_city_r) in ('cainta','angono','antipolo','binangonan','taytay','noveleta') then 'none'
-            WHEN subgroup.client_subgroup_code = '0038-QRY7' then 'pampanga_sort' 
-            else 'none' end as clt_subgroup_code, --FOR SHOPEE DIFF RATE INGESTED IN PAMPANGA
-            
-       subgroup.client_subgroup
+       d.distance
 
        -- row_number() over (partition by r.reference_no) as "rn"
 
@@ -161,10 +154,6 @@ WITH revheu_cte AS (
                                 then 'zalora'
                                 else 'all' end
         AND replace(lower(concat(concat(d.city_daily,d.province_daily),d.barangay)),' ','') = replace(lower(concat(concat(replace(r.delivery_city,'ñ','n'),r.delivery_province),r.barangay)),' ','')
-
-
-        LEFT JOIN dw.dim_client_info subgroup
-        ON r.reference_no = subgroup.tracking_numbers
         -- WHERE LEFT(reference_no,4) in ('0223','0312','0265')
         -- WHERE LEFT(reference_no,4) not in ('0031','0038','0280','0018')
         -- WHERE LEFT(reference_no,4) in ('0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297')
@@ -219,7 +208,6 @@ SELECT  reference_no,
         client_subgroup_code,
         client_subgroup,
         mp_pickup_surcharge
-
 
 
 FROM (
@@ -366,10 +354,6 @@ FROM (
                rh.volumetric_weight_r,
                rh.job_master_first,
 
-               rh.client_subgroup_code,
-               rh.clt_subgroup_code,
-               rh.client_subgroup,
-
                ROW_NUMBER() OVER (PARTITION BY rh.reference_no) AS "rn"
 
         FROM  revheu_cte rh
@@ -379,16 +363,12 @@ FROM (
         AND rh.package_type = rc.package_type
         AND rh.package_category = rc.package_category
         AND rh.char_weight BETWEEN rc.weight_min AND rc.weight_max
-        AND rh.package_value BETWEEN rc.value_min AND rc.value_max
-        AND rh.clt_subgroup_code = rc.billing_subcode
+        AND rh.package_value BETWEEN rc.value_min AND rc.value_max) final
 
-        ) final
 
+LEFT JOIN dw.dim_client_info subgroup
+on final.reference_no = subgroup.tracking_numbers
 WHERE rn = 1
-
-
-
-
 
 );
 
