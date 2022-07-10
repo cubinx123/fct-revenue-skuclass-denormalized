@@ -174,7 +174,7 @@ WITH revheu_cte AS (
         --       OR LEFT(reference_no,4) in ('0128','0196','0250','0304','0310','0315','0319','0323','0335','0337','0306','0332','0338','0309','0318','0343','0125','0347','0348','0324','0284','0349','0254','0345','0331','0340','0325','0311','0299','0308','0193','0298','0225','0267','0263','0187','0312','0223','0317','0266','0033','0339','0342','0258','0136','0211','0282','0270','0011','0195','0289','0172','0287','0259','0260','0320','0314','0297'))
         -- WHERE LEFT(reference_no,4) in ('0150')
         WHERE LEFT(reference_no,4) in (select distinct case when category in ('lazada_regular','lazada_rtm') then '0031' when category in ('shopee_regular1','shopee_regular2') then '0038' else category end from finance.rate_card_v2)
-        AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '7 DAY'
+        AND r."timestamp" >= CONVERT_TIMEZONE('Asia/Manila', SYSDATE)::date - INTERVAL '10 DAY'
         -- AND r."timestamp" between '2022-01-01 00:00:00' and '2022-01-31 23:59:59'
         
         -- AND r."timestamp" >= '2022-01-01 00:00:00'
@@ -249,6 +249,8 @@ FROM (
 
                CASE WHEN rh.category in ('shopee_regular1','shopee_regular2') AND rh.package_value < 2501
                     THEN 0 --NO VALUATION FEE FOR SHOPPING FOR PACKAGE_VALUE LESS THAN 2501 PHP
+                    WHEN LEFT(rh.reference_no,4) = '0266'
+                    THEN 0 -- No valuation fee for 0266 starting july 1 2022
                     ELSE
                         CASE WHEN rh.category in ('shopee_regular1','shopee_regular2')
                              THEN ((rh.package_value - 2500) * CAST(rc.valuation AS float)) / 1.12 --REMOVING VAT FROM VALUATION FEE CALCULATION FOR SHOPEE
@@ -260,6 +262,8 @@ FROM (
                END AS "valuation_fee",
 
                CASE WHEN rh.is_rtc AND rh.category in ('lazada_regular')
+                    THEN '0'
+                    WHEN LEFT(rh.reference_no,4) = '0283' and rh.coverage not in ('SA-C') -- 0 base rate if transaction is SRA or NRA
                     THEN '0'
                     WHEN rh.is_rtc and regexp_count(lower(rh.reference_no),'-pr') > 0 and (rh.category = '0018' or rh.category = '0280')
                     THEN '0'
