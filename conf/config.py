@@ -11,10 +11,9 @@ fareye_db = {'username': os.environ.get("DB_USER"),
                   'port': os.environ.get("DB_PORT"),
                   'dbname': os.environ.get("DB_DBNAME")}
 
-views = [{'view_name': 'billing_calc_table',# Change in .sql
-          'view_sql': 'billing_calc.sql'
-          }
-         ]
+views = [{'view_name': 'fct_revenue_skuclass_agg_table',# Change in .sql
+          'view_sql': 'fct_revenue_skuclass_agg.sql'
+          }]
 
 aws_config = {
     'aws_access_key' : os.environ.get("AWS_ACCESS_KEY"),
